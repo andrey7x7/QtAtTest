@@ -12,11 +12,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     scene = new QGraphicsScene();
     scene->setSceneRect(0,0,782,533);
-    ui->graphicsView->setScene(scene);
+
     widthPlane = 782;
     heightPlane = 533;
 
-    generateField();
+    ui->graphicsView->setScene(scene);
 }
 
 MainWindow::~MainWindow()
@@ -29,6 +29,11 @@ MainWindow::~MainWindow()
 */
 void MainWindow::showMessage()
 {
+    widthPlane=width();
+    heightPlane=height();
+    scene->setSceneRect(0,0,widthPlane,heightPlane);
+
+    generateField(50, widthPlane, heightPlane);
     model = new Model();
     scene->addItem(model);
     model->setPos(ui->graphicsView->width()/2, ui->graphicsView->height()/2);
@@ -55,9 +60,16 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
 
     model->setPos(pos);
-    scene->setSceneRect(pos.x()-widthPlane/2, pos.y()-heightPlane/2, widthPlane-5, heightPlane-7);
-
     //смещение области видимости
+    QRectF rect;
+    rect.setWidth(widthPlane);
+    rect.setHeight(heightPlane);
+    rect.setX(pos.x()>widthPlane/2 ?  pos.x()-widthPlane/2 : 0);
+    rect.setY(pos.y()>heightPlane/2 ? pos.y()-heightPlane/2 : 0);
+    scene->setSceneRect(rect);
+    //scene->setSceneRect(pos.x()-widthPlane/2, pos.y()-heightPlane/2, widthPlane-5, heightPlane-7);
+
+
 //    if(pos.x()>widthPlane/2 || pos.y()>heightPlane/2){
 //        QRectF rect;
 //        rect.setWidth(widthPlane-5);
@@ -70,12 +82,31 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     qDebug()<<pos;
 }
 
-void MainWindow::generateField()
+// Определение функции qHash для использования QPoint в QMap
+uint qHash(const QPoint &point, uint seed = 0) {
+     return qHash(point.x(), seed) ^ qHash(point.y(), seed); // Используем хеширование координат
+}
+
+void MainWindow::generateField(int size, int width, int height)
 {
-    for(int w=0; w<1501 ; w+=50){
-        scene->addLine(w,0,w,1500);
+    //генерация сетки
+//    for(int w=0; w<width+1 ; w+=size){
+//        scene->addLine(w,0,w,height);
+//    }
+//    for(int h=0; h<height+1 ; h+=50){
+//        scene->addLine(0,h,width,h);
+//    }
+
+    //заполнение
+    QHash<QPoint, bool> mapa;
+    for(int w=0; w<width/size; w++){
+        for(int h=0; h<height/size; h++){
+            bool isWhite = (QRandomGenerator::global()->generate() % 3 == 0);
+            mapa.insert(QPoint(w*size,h*size),isWhite);
+        }
     }
-    for(int h=0; h<1501 ; h+=50){
-        scene->addLine(0,h,1500,h);
+
+    for(QPoint pos : mapa.keys()){
+        scene->addRect(pos.x(),pos.y(),50,50, QPen(Qt::black), mapa.value(pos)? QBrush(Qt::gray) : QBrush(Qt::yellow));
     }
 }

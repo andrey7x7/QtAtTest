@@ -6,6 +6,10 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QException>
+#include <QRandomGenerator>
+#include <QPoint>
+#include <QMap>
+#include <QHash>
 
 #include "model.h"
 
@@ -31,7 +35,7 @@ private:
 
 private slots:
     void showMessage();
-    void generateField();
+    void generateField(int size, int width, int height);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
