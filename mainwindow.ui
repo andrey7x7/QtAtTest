@@ -38,7 +38,16 @@
     <addaction name="start"/>
     <addaction name="exit"/>
    </widget>
+   <widget class="QMenu" name="menu_size">
+    <property name="title">
+     <string>Размер</string>
+    </property>
+    <addaction name="action800x600"/>
+    <addaction name="action1024x768"/>
+    <addaction name="action1920x1080"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_size"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="exit">
@@ -49,6 +58,21 @@
   <action name="start">
    <property name="text">
     <string>Запуск</string>
+   </property>
+  </action>
+  <action name="action800x600">
+   <property name="text">
+    <string>800x600</string>
+   </property>
+  </action>
+  <action name="action1024x768">
+   <property name="text">
+    <string>1024x768</string>
+   </property>
+  </action>
+  <action name="action1920x1080">
+   <property name="text">
+    <string>1920x1080</string>
    </property>
   </action>
  </widget>

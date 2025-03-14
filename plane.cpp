@@ -23,4 +23,3 @@ void Plane::setScene(QGraphicsScene *scene)
 {
     ui->graphicsView->setScene(scene);
 }
-
