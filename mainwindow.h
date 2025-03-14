@@ -33,6 +33,7 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     Model *model;
+    int squareSize;
     int widthPlane;
     int heightPlane;
     QPointF pos;
@@ -42,6 +43,7 @@ private:
     QPoint finish;
 
 private slots:
+    void resizeWindow();
     void startAndGenerate();
     void generateField(int size, int width, int height);
     void setStartFinish(QPoint point);

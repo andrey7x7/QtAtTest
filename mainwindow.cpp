@@ -10,9 +10,19 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->start, SIGNAL(triggered()), this, SLOT(startAndGenerate()));
     connect(ui->exit, SIGNAL(triggered()), this, SLOT(close()));
 
+    ui->action800x600->setProperty("index",QSize(800,600));
+    connect(ui->action800x600,  SIGNAL(triggered()), this, SLOT(resizeWindow()));
+
+    ui->action1024x768->setProperty("index",QSize(1024,768));
+    connect(ui->action1024x768,  SIGNAL(triggered()), this, SLOT(resizeWindow()));
+
+    ui->action1920x1080->setProperty("index",QSize(1920,1080));
+    connect(ui->action1920x1080,  SIGNAL(triggered()), this, SLOT(resizeWindow()));
+
     scene = new QGraphicsScene();
     scene->setSceneRect(0,0,782,533);
 
+    squareSize = 26;
     widthPlane = 782;
     heightPlane = 533;
 
@@ -27,6 +37,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::resizeWindow()
+{
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    QSize size = action->property("index").toSize();
+    resize(size);
+    setMinimumSize(size);
+    setMaximumSize(size);
+    setGeometry(geometry().x(), geometry().y(), size.width(), size.height());
+}
+
 /**
     Коммент
 */
@@ -36,9 +56,9 @@ void MainWindow::startAndGenerate()
     finish = QPoint(-1,-1);
     widthPlane=width();
     heightPlane=height();
-    scene->setSceneRect(0,0,widthPlane,heightPlane);
+    scene->setSceneRect(0,0,widthPlane-18,heightPlane-70);
 
-    generateField(50, widthPlane, heightPlane);
+    generateField(squareSize, widthPlane-30, heightPlane-70);
     model = new Model();
     scene->addItem(model);
     model->setPos(plane1->width()/2, plane1->height()/2);
@@ -46,6 +66,26 @@ void MainWindow::startAndGenerate()
     pos = model->pos();
 }
 
+void MainWindow::generateField(int size, int width, int height)
+{
+    mapa.clear();
+    scene->clear();
+    for(int w=0; w<width/size; w++){
+        for(int h=0; h<height/size; h++){
+            bool isWhite = (QRandomGenerator::global()->generate() % 3 == 0);
+            mapa.insert(QPoint(w*size,h*size),isWhite);
+        }
+    }
+    paintMap(mapa);
+}
+
+//заполнение
+void MainWindow::paintMap(QHash<QPoint, bool> map)
+{
+    for(QPoint pos : map.keys()){
+        scene->addRect(pos.x(),pos.y(),squareSize,squareSize, QPen(Qt::black), map.value(pos)? QBrush(Qt::gray) : QBrush(Qt::yellow));
+    }
+}
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
@@ -90,24 +130,30 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::planeMousePress(QMouseEvent *eventPress)
 {
     //нормализация точки по левому верхнему углу квадрата
-    setStartFinish(QPoint(eventPress->pos().x()/50*50,
-                          eventPress->pos().y()/50*50));
+    setStartFinish(QPoint(eventPress->pos().x()/squareSize*squareSize,
+                          eventPress->pos().y()/squareSize*squareSize));
 }
 
 void MainWindow::setStartFinish(QPoint point){
-    if(start!=QPoint(-1,-1) && finish!=QPoint(-1,-1)){
-        paintMap(mapa);
-        start = QPoint(-1,-1);
-        finish = QPoint(-1,-1);
-    }
 
-    if(start==QPoint(-1,-1)){
-        start = point;
-        scene->addRect(QRectF(point, QSize(50,50)), QPen(Qt::black), QBrush(Qt::red));
-    } else if(finish==QPoint(-1,-1)){
-        finish = point;
-        scene->addRect(QRectF(point, QSize(50,50)), QPen(Qt::black), QBrush(Qt::green));
-        paintPath();
+    if(mapa.size()>0){
+        if(start!=QPoint(-1,-1) && finish!=QPoint(-1,-1)){
+            paintMap(mapa);
+            start = QPoint(-1,-1);
+            finish = QPoint(-1,-1);
+        }
+
+        if(start==QPoint(-1,-1)){
+            start = point;
+            scene->addRect(QRectF(point, QSize(squareSize,squareSize)), QPen(Qt::black), QBrush(Qt::red));
+        } else if(finish==QPoint(-1,-1)){
+            finish = point;
+            scene->addRect(QRectF(point, QSize(squareSize,squareSize)), QPen(Qt::black), QBrush(Qt::green));
+            paintPath();
+        }
+    }
+    else{
+        ui->statusbar->showMessage("Карта не создана, построение маршрута невозможно", 5000);
     }
 }
 
@@ -115,26 +161,6 @@ void MainWindow::setStartFinish(QPoint point){
 uint qHash(const QPoint &point, uint seed = 0) {
      return qHash(point.x(), seed) ^ qHash(point.y(), seed); // Используем хеширование координат
 }
-
-void MainWindow::generateField(int size, int width, int height)
-{    
-    for(int w=0; w<width/size; w++){
-        for(int h=0; h<height/size; h++){
-            bool isWhite = (QRandomGenerator::global()->generate() % 3 == 0);
-            mapa.insert(QPoint(w*size,h*size),isWhite);
-        }
-    }
-    paintMap(mapa);
-}
-
-//заполнение
-void MainWindow::paintMap(QHash<QPoint, bool> map)
-{
-    for(QPoint pos : map.keys()){
-        scene->addRect(pos.x(),pos.y(),50,50, QPen(Qt::black), map.value(pos)? QBrush(Qt::gray) : QBrush(Qt::yellow));
-    }
-}
-
 
 /**
  * Функция для поиска пути на карте
@@ -160,7 +186,7 @@ void MainWindow::paintPath()
 
     QHash<QPoint,bool> map;
     for(const QPoint& key : mapa.keys()){
-        QPoint nKey = QPoint(key.x()/50, key.y()/50);
+        QPoint nKey = QPoint(key.x()/squareSize, key.y()/squareSize);
         map.insert(nKey, mapa.value(key));
     }
 
@@ -177,7 +203,7 @@ void MainWindow::paintPath()
 
     // Отображение пути на лабиринте
     for (QPoint point : path) {
-        scene->addRect(QRectF(QPoint(point.x(),point.y()), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
+        scene->addEllipse(QRectF(QPoint(point.x()+(squareSize/3),point.y()+(squareSize/3)), QSize(squareSize/3,squareSize/3)), QPen(Qt::black), QBrush(Qt::blue));
     }
 
 }
@@ -195,10 +221,10 @@ QVector<QPoint> MainWindow::findPath(const QHash<QPoint, bool>& map, const QPoin
     }
 
     QVector<QPoint> directions = {
-        QPoint(50, 0),   // Вправо
-        QPoint(-50, 0),  // Влево
-        QPoint(0, 50),   // Вниз
-        QPoint(0, -50)   // Вверх
+        QPoint(squareSize, 0),   // Вправо
+        QPoint(-squareSize, 0),  // Влево
+        QPoint(0, squareSize),   // Вниз
+        QPoint(0, -squareSize)   // Вверх
     };
 
     QQueue<QPoint> queue;               // Очередь для BFS

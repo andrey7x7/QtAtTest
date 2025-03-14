@@ -21,7 +21,6 @@ public:
 public slots:
     void planeMousePress(QMouseEvent *eventPress);
     void setScene(QGraphicsScene *scene);
-
 private:
     Ui::plane *ui;
 
