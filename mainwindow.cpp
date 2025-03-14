@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowTitle("AiTest");
-    connect(ui->start, SIGNAL(triggered()), this, SLOT(showMessage()));
+    connect(ui->start, SIGNAL(triggered()), this, SLOT(startAndGenerate()));
     connect(ui->exit, SIGNAL(triggered()), this, SLOT(close()));
 
     scene = new QGraphicsScene();
@@ -30,7 +30,7 @@ MainWindow::~MainWindow()
 /**
     Коммент
 */
-void MainWindow::showMessage()
+void MainWindow::startAndGenerate()
 {
     start = QPoint(-1,-1);
     finish = QPoint(-1,-1);
