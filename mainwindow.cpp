@@ -95,7 +95,6 @@ void MainWindow::planeMousePress(QMouseEvent *eventPress)
 }
 
 void MainWindow::setStartFinish(QPoint point){
-    //qDebug()<<mapa.value(point);
     if(start!=QPoint(-1,-1) && finish!=QPoint(-1,-1)){
         paintMap(mapa);
         start = QPoint(-1,-1);
@@ -142,18 +141,10 @@ void MainWindow::paintMap(QHash<QPoint, bool> map)
  */
 void MainWindow::paintPath()
 {
-    qDebug()<< "Find path";
-
-//    if (startRow == -1 || startCol == -1 || endRow == -1 || endCol == -1) {
-//        return; // Начальная или конечная точка не установлена
-//    }
-
-//    int width = ui->tableWidget->columnCount();
-//    int height = ui->tableWidget->rowCount();
-
     // Проверка валидности координат
-    if (start.isNull() || finish.isNull() || start==QPoint(-1,-1) || finish==QPoint(-1,-1)) {
+    if (start==QPoint(-1,-1) || finish==QPoint(-1,-1)) {
         ui->statusbar->showMessage("Координаты не валидны", 5000);
+        qDebug()<<"Координаты "<<start<<finish<<" не валидны";
         return;
     }
 
@@ -173,7 +164,6 @@ void MainWindow::paintPath()
         map.insert(nKey, mapa.value(key));
     }
 
-    //QVector<QPoint> path = findPath(map, QPoint(start.x()/50, start.y()/50), QPoint(finish.x()/50, finish.y()/50));
     QVector<QPoint> path = findPath(mapa, QPoint(start.x(), start.y()), QPoint(finish.x(), finish.y()));
     qDebug()<<"path  "<<path;
     if(path.size()>0){
@@ -187,7 +177,6 @@ void MainWindow::paintPath()
 
     // Отображение пути на лабиринте
     for (QPoint point : path) {
-        //scene->addRect(QRectF(QPoint(point.x()*50,point.y()*50), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
         scene->addRect(QRectF(QPoint(point.x(),point.y()), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
     }
 
@@ -198,19 +187,13 @@ void MainWindow::paintPath()
  *  return QVector<QPoint> map
  */
 QVector<QPoint> MainWindow::findPath(const QHash<QPoint, bool>& map, const QPoint& start, const QPoint& end) {
+        qDebug()<< "Find path";
     QVector<QPoint> path;
-    // Check if start or end points are blocked
+    // Проверка что тарт и финиш не блокированы
     if (map.value(start, false) || map.value(end, false)) {
-        return path; // Return empty path if either point is blocked
+        return path; // Возвращаем пусто если блокированы
     }
 
-    // Определение направлений для перемещения
-//    QVector<QPoint> directions = {
-//        QPoint(1, 0),   // Вправо
-//        QPoint(-1, 0),  // Влево
-//        QPoint(0, 1),   // Вниз
-//        QPoint(0, -1)   // Вверх
-//    };
     QVector<QPoint> directions = {
         QPoint(50, 0),   // Вправо
         QPoint(-50, 0),  // Влево
@@ -227,9 +210,9 @@ QVector<QPoint> MainWindow::findPath(const QHash<QPoint, bool>& map, const QPoin
     while (!queue.isEmpty()) {
         QPoint current = queue.dequeue(); // Извлечение текущей точки из очереди
 
-        // Check if we reached the end point
+        // Проверка конечной точки
         if (current == end) {
-            // Reconstruct the path
+            // Восстановление пути
             QPoint p = end;
             while (p != QPoint(-1, -1)) {
                 path.prepend(p);
@@ -239,17 +222,17 @@ QVector<QPoint> MainWindow::findPath(const QHash<QPoint, bool>& map, const QPoin
             return path;
         }
 
-        // Explore neighbors
+        // Приверка соседа
         for (const auto& direction : directions) {
             QPoint neighbor = current + direction;
 
-            // Ensure neighbor is within bounds and not blocked
+            // Проверка что сосед не блокирован
             if (!map.value(neighbor, true) && !cameFrom.contains(neighbor)) {
                 queue.enqueue(neighbor);
-                cameFrom[neighbor] = current; // Record where we came from
+                cameFrom[neighbor] = current;
             }
         }
     }
 
-    return path; // Return empty path if no path found
+    return path; // Возвращаем пусто если путь не найден
 }
