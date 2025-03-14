@@ -42,7 +42,7 @@ private:
     QPoint finish;
 
 private slots:
-    void showMessage();
+    void startAndGenerate();
     void generateField(int size, int width, int height);
     void setStartFinish(QPoint point);
     void paintPath();

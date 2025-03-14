@@ -89,7 +89,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::planeMousePress(QMouseEvent *eventPress)
 {
-    //qDebug()<<QPoint(eventPress->pos().x()/50, eventPress->pos().y()/50);
+    //нормализация точки по левому верхнему углу квадрата
     setStartFinish(QPoint(eventPress->pos().x()/50*50,
                           eventPress->pos().y()/50*50));
 }
@@ -153,6 +153,7 @@ void MainWindow::paintPath()
 
     // Проверка валидности координат
     if (start.isNull() || finish.isNull() || start==QPoint(-1,-1) || finish==QPoint(-1,-1)) {
+        ui->statusbar->showMessage("Координаты не валидны", 5000);
         return;
     }
 
@@ -172,7 +173,8 @@ void MainWindow::paintPath()
         map.insert(nKey, mapa.value(key));
     }
 
-    QVector<QPoint> path = findPath(map, QPoint(start.x()/50, start.y()/50), QPoint(finish.x()/50, finish.y()/50));
+    //QVector<QPoint> path = findPath(map, QPoint(start.x()/50, start.y()/50), QPoint(finish.x()/50, finish.y()/50));
+    QVector<QPoint> path = findPath(mapa, QPoint(start.x(), start.y()), QPoint(finish.x(), finish.y()));
     qDebug()<<"path  "<<path;
     if(path.size()>0){
         ui->statusbar->showMessage("Маршрут построен", 5000);
@@ -185,7 +187,8 @@ void MainWindow::paintPath()
 
     // Отображение пути на лабиринте
     for (QPoint point : path) {
-        scene->addRect(QRectF(QPoint(point.x()*50,point.y()*50), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
+        //scene->addRect(QRectF(QPoint(point.x()*50,point.y()*50), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
+        scene->addRect(QRectF(QPoint(point.x(),point.y()), QSize(10,10)), QPen(Qt::black), QBrush(Qt::blue));
     }
 
 }
@@ -202,11 +205,17 @@ QVector<QPoint> MainWindow::findPath(const QHash<QPoint, bool>& map, const QPoin
     }
 
     // Определение направлений для перемещения
+//    QVector<QPoint> directions = {
+//        QPoint(1, 0),   // Вправо
+//        QPoint(-1, 0),  // Влево
+//        QPoint(0, 1),   // Вниз
+//        QPoint(0, -1)   // Вверх
+//    };
     QVector<QPoint> directions = {
-        QPoint(1, 0),   // Вправо
-        QPoint(-1, 0),  // Влево
-        QPoint(0, 1),   // Вниз
-        QPoint(0, -1)   // Вверх
+        QPoint(50, 0),   // Вправо
+        QPoint(-50, 0),  // Влево
+        QPoint(0, 50),   // Вниз
+        QPoint(0, -50)   // Вверх
     };
 
     QQueue<QPoint> queue;               // Очередь для BFS
