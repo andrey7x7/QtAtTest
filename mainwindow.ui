@@ -20,15 +20,7 @@
    <property name="focusPolicy">
     <enum>Qt::WheelFocus</enum>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QGraphicsView" name="graphicsView">
-      <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QGridLayout" name="gridLayout"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -60,9 +52,6 @@
    </property>
   </action>
  </widget>
- <tabstops>
-  <tabstop>graphicsView</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>
